@@ -1,14 +1,155 @@
 <link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<script src="/bower_components/chart.js/dist/Chart.js"></script>
+<script src="/bower_components/moment/min/moment.min.js"></script>
 <dom-module id="cryptoprice-dash">
-    <template>
-        <h2>Hello world!</h2>
-    </template>
-    <script>
-        class Cryptopricedash extends Polymer.Element {
-            static get is () {
-                return "cryptoprice-dash"
-            }
+  <template>
+    <h2>Hello world!</h2>
+    <iron-ajax id="coinbase" handle-as="json" on-response="_handleResponse" loading="{{loading}}"></iron-ajax>
+    <paper-spinner active="[[loading]]"></paper-spinner>
+    <div hidden$=[[loading]]>
+      <template is="dom-repeat" items="[[currencies]]">
+        <!-- <p>[[item.code]] - [[item.name]] - $[[item.price]]</p> -->
+        <paper-button on-click="_getCurrencyHistoricData" data-item$="[[item.code]]">
+          [[item.name]] - $[[item.price]]
+        </paper-button>
+      </template>
+    </div>
+    <div hidden$="[[loading]]" style="width:100%; max-width:700px; margin: 0 auto">
+      <canvas height="2" width="4" id="canvas"></canvas>
+    </div>
+  </template>
+  <script>
+    class Cryptopricedash extends Polymer.Element {
+      static get is() {
+        return "cryptoprice-dash"
+      }
+      static get properties() {
+        return {
+          loading: {
+            type: Boolean,
+            value: false,
+            notify: true
+          },
+          lineChart: {},
+          currencies: {
+            type: Array,
+            value: [
+              {
+                code: "BTC",
+                name: "Bitcoin",
+                price: 0
+              },
+              {
+                code: "ETH",
+                name: "Ethereum",
+                price: 0
+              },
+              {
+                code: "LTC",
+                name: "Litecoin",
+                price: 0
+              }
+            ]
+          }
         }
-        customElements.define(Cryptopricedash.is, Cryptopricedash)
-    </script>
+      }
+      ready() {
+        super.ready()
+        Polymer.RenderStatus.afterNextRender(this, function () {
+          this._getCurrencyData();
+          this._getCurrencyHistoricData(this.currencies[0].code);
+        })
+      }
+      _computeDateTime(dateString) {
+        if (dateString) {
+          return moment(dateString, "YYYY-MM-DDThh:mm:aaZ").format("DD/MM/YYYY h:mm a")
+        }
+        return dateString
+      }
+      _getCurrencyData() {
+        var ajax = this.$.coinbase
+        var currencies = this.currencies
+        currencies.forEach(function (element) {
+          ajax.url = "https://api.coinbase.com/v2/prices/" + element.code + "-USD/spot"
+          ajax.generateRequest()
+        });
+      }
+      _getCurrencyHistoricData(currency) {
+        if (currency instanceof Event) {
+          currency = currency.target.dataset.item
+        }
+        var ajax = this.$.coinbase
+        ajax.url = "https://api.coinbase.com/v2/prices/" + currency + "-USD/historic?period=week"
+        ajax.generateRequest()
+      }
+      _handleResponse(response) {
+        if (response.detail.response.data.amount != null) {
+          this._computeCurrencyPrice(response.detail)
+        } else {
+          this._computeGraph(response.detail)
+        }
+      }
+      _computeGraph(data) {
+        var currency = data.url.substring(35, 38)
+        var dates = [];
+        var prices = [];
+        data.response.data.prices.forEach(function (element) {
+          dates.push(this._computeDateTime(element.time))
+          prices.push(element.price)
+        }, this)
+        this._generateLineChart(dates, prices, currency)
+      }
+      _generateLineChart(dates, prices, currency) {
+        if (this.lineChart !== undefined) this.lineChart.destroy();
+        var ctx = this.$.canvas.getContext("2d")
+        this.lineChart = new Chart(ctx, {
+          type: "line",
+          data: {
+            labels: dates.reverse(),
+            datasets: [
+              {
+                pointRadius: 0,
+                label: currency,
+                backgroundColor: "#d1d1e0",
+                borderWidth: 1,
+                borderColor: "#ff704d",
+                data: prices.reverse()
+              }
+            ]
+          },
+          options: {
+            animation: false,
+            tooltips: {
+              mode: "index",
+              intersect: false
+            },
+            scales: {
+              xAxes: [{
+                gridLines: {
+                  display: false
+                }
+              }],
+              yAxes: [{
+                gridLines: {
+                  display: false
+                }
+              }]
+            }
+          }
+        });
+      }
+      _computeCurrencyPrice(data) {
+        var code = data.url.substring(35, 38)
+        var index = this.currencies.map(function (e) {
+          return e.code
+        }).indexOf(code)
+        this.set("currencies." + index + ".price", data.response.data.amount)
+
+      }
+    }
+    customElements.define(Cryptopricedash.is, Cryptopricedash)
+  </script>
 </dom-module>
