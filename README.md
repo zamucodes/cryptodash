@@ -11,7 +11,7 @@ Simple one page dashboard to consume coinbase services to retreive the pricing f
 Basic knwoledge of Polymer 2, WebComponents and how to install them
 ### Installing
 
-Just clone the repo or download the zip file to your computer and run "npm install dependencies" on a terminal
+Just clone the repo or download the zip file to your computer and run "bower install" on a terminal
 
 ## Deployment
 
