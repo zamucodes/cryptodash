@@ -26,10 +26,6 @@ After all dependencies are installed just run polymer serve --open to deploy loc
 
 * **Samuel Chavez** - *Initial work* - [zamuset](https://github.com/zamuset)
 
-## License
-
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
-
 ## Acknowledgments
 
-* From the udemy course by [armaneker](https://github.com/armaneker)
+* Based in the Udemy course by [armaneker](https://github.com/armaneker)
