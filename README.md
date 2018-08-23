@@ -22,10 +22,6 @@ After all dependencies are installed just run polymer serve --open to deploy loc
 * [Polymer 2](https://www.polymer-project.org/2.0/docs/about_20)
 * [WebComponents](https://www.webcomponents.org/)
 
-## Contributing
-
-Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c63ec426) for details on our code of conduct, and the process for submitting pull requests to us.
-
 ## Authors
 
 * **Samuel Chavez** - *Initial work* - [zamuset](https://github.com/zamuset)
