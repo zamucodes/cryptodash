@@ -2,23 +2,98 @@
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-styles/typography.html">
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout.html">
+<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
 <script src="/bower_components/chart.js/dist/Chart.js"></script>
 <script src="/bower_components/moment/min/moment.min.js"></script>
 <dom-module id="cryptoprice-dash">
   <template>
-    <h2>Hello world!</h2>
+    <style>
+      :host {
+        display: block;
+        font-family: 'Roboto';
+        --paper-cryptocurrency-primary-text-color: #0667D0;
+        background-color: #96C5F7;
+        
+      }
+
+      h2 {
+        color: #0667D0;
+        @apply --layout-horizontal;
+        @apply --layout-center-center;
+        padding: 20px;
+      }
+
+      a {
+        color: #0667D0;
+        text-decoration: none;
+      }
+
+      .content {
+        margin-bottom: 20px;
+        padding: 0 16px;
+        @apply --layout-horizontal;
+        @apply --layout-center-center;
+      }
+
+      .header {
+        @apply --layout-horizontal;
+        @apply --layout-center;
+      }
+
+      .currency {
+        /*@apply --paper-font-headline;*/
+        @apply --paper-font-common-nowrap;
+        color: var(--paper-cryptocurrency-primary-text-color);
+        font-weight: 300;
+      }
+
+      paper-spinner-lite {
+        /*@apply --layout-fit;*/
+        display: none;
+        margin: auto;
+        z-index: 2;
+        height: 70px;
+        width: 70px;
+        --paper-spinner-color: var(--paper-cryptocurrency-spinner-color, #2196F3);
+        --paper-spinner-stroke-width: var(--paper-cryptocurrency-spinner-width, 5px);
+        @apply --paper-cryptocurrency-spinner;
+      }
+
+      paper-spinner-lite[active] {
+        display: block;
+      }
+
+      .lineChart {
+        height: 60%;
+        width: 100%;
+        max-width:80%;
+        margin: 0 auto;
+      }
+      paper-button {
+        background-color: turquoise;
+      }
+    </style>
+    <h2>Crypto Dashboard</h2>
     <iron-ajax id="coinbase" handle-as="json" on-response="_handleResponse" loading="{{loading}}"></iron-ajax>
     <paper-spinner active="[[loading]]"></paper-spinner>
     <div hidden$=[[loading]]>
-      <template is="dom-repeat" items="[[currencies]]">
-        <!-- <p>[[item.code]] - [[item.name]] - $[[item.price]]</p> -->
-        <paper-button on-click="_getCurrencyHistoricData" data-item$="[[item.code]]">
-          [[item.name]] - $[[item.price]]
-        </paper-button>
-      </template>
+      <div class="content">
+        <div class="header">
+          <template is="dom-repeat" items="[[currencies]]">
+            <!-- <p>[[item.code]] - [[item.name]] - $[[item.price]]</p> -->
+            <paper-button raised on-click="_getCurrencyHistoricData" data-item$="[[item.code]]">
+              [[item.name]] - $[[item.price]]
+            </paper-button>
+          </template>
+        </div>
+      </div>
     </div>
-    <div hidden$="[[loading]]" style="width:100%; max-width:700px; margin: 0 auto">
-      <canvas height="2" width="4" id="canvas"></canvas>
+    <div class="lineChart">
+        <div hidden$="[[loading]]">
+          <canvas height="2" width="4" id="canvas"></canvas>
+        </div>
     </div>
   </template>
   <script>
@@ -32,6 +107,10 @@
             type: Boolean,
             value: false,
             notify: true
+          },
+          currentShowing: {
+            type: String,
+            value: "Bitcoin"
           },
           lineChart: {},
           currencies: {
@@ -72,6 +151,7 @@
       _getCurrencyData() {
         var ajax = this.$.coinbase
         var currencies = this.currencies
+        this.currentShowing = currencies[0].name
         currencies.forEach(function (element) {
           ajax.url = "https://api.coinbase.com/v2/prices/" + element.code + "-USD/spot"
           ajax.generateRequest()
@@ -80,6 +160,7 @@
       _getCurrencyHistoricData(currency) {
         if (currency instanceof Event) {
           currency = currency.target.dataset.item
+          console.log(currency)
         }
         var ajax = this.$.coinbase
         ajax.url = "https://api.coinbase.com/v2/prices/" + currency + "-USD/historic?period=week"
@@ -113,9 +194,9 @@
               {
                 pointRadius: 0,
                 label: currency,
-                backgroundColor: "#d1d1e0",
+                backgroundColor: "#C4FFB2",
                 borderWidth: 1,
-                borderColor: "#ff704d",
+                borderColor: "#D6F7A3",
                 data: prices.reverse()
               }
             ]
